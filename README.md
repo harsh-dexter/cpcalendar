@@ -1,4 +1,5 @@
-# CP Calendar
+# ![icon48](https://github.com/user-attachments/assets/e6533f58-a536-446d-a4c0-347949d4246e) CP Calendar
+
 
 CP Calendar is a Chrome extension that displays upcoming competitive programming contests from various platforms and allows you to add them to your Google Calendar.
 
