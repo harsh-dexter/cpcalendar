@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CP Calendar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Upcoming Contests</h1>
+        <div id="day-filter-container">
+            <h2>Filter by Date:</h2>
+            <div id="day-filter">
+                <!-- Day filter buttons will be dynamically inserted here -->
+            </div>
+        </div>
+        <div id="platform-filter-container">
+            <h2>Filter by Platform:</h2>
+            <div id="platform-filter">
+                <!-- Platform filter buttons will be dynamically inserted here -->
+            </div>
+        </div>
+        <div id="search-container">
+            <input type="search" id="search-bar" placeholder="Search contest titles...">
+        </div>
+        <div class="loader-container" id="loader-container" style="display: none;"> 
+            <div class="loader"></div>
+            <p>Loading contests...</p> 
+        </div>
+        <div id="contest-list">
+            <!-- Contests will be dynamically inserted here -->
+        </div>
+        <div id="error-message" class="error" style="display: none;"></div>
+    </div>
+    <script type="module" src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 15px; /* Increased padding */
+    background-color: #f8f9fa; /* Slightly lighter background */
+    color: #333;
+    width: 380px; /* Adjusted width for better content display */
+    min-height: 200px;
+    max-height: 580px; /* Allow scrolling for many contests */
+    overflow-y: auto;
+}
+
+.container {
+    padding: 10px;
+}
+
+h1 {
+    font-size: 20px;
+    color: #2c3e50;
+    text-align: center;
+    margin-top: 5px; /* Added some top margin */
+    margin-bottom: 20px; /* Increased bottom margin */
+    border-bottom: 1px solid #dee2e6; /* Softer border */
+    padding-bottom: 15px; /* Increased padding */
+}
+
+#day-filter-container {
+    margin-bottom: 15px; /* Spacing below day filters */
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+#day-filter-container h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #343a40;
+    margin-top: 0;
+    margin-bottom: 12px;
+    text-align: left;
+}
+
+#search-container {
+    margin-bottom: 15px;
+}
+
+#search-bar {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    box-sizing: border-box; /* Ensures padding doesn't add to width */
+}
+
+#search-bar:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+#day-filter {
+    display: flex; /* Arrange buttons in a row */
+    flex-wrap: wrap; /* Allow wrapping */
+    gap: 8px;
+}
+
+.day-filter-button {
+    background-color: #e9ecef; /* Slightly different default from platform toggles */
+    border: 1px solid #ced4da;
+    color: #495057;
+    padding: 6px 12px;
+    border-radius: 16px; /* Pill shape */
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    text-align: center;
+    outline: none;
+}
+
+.day-filter-button:hover {
+    background-color: #dee2e6;
+    border-color: #adb5bd;
+}
+
+.day-filter-button.selected {
+    background-color: #007bff; /* Theme blue for selected */
+    color: #ffffff;
+    border-color: #007bff;
+    font-weight: 500;
+}
+
+#platform-filter-container {
+    margin-bottom: 15px;
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+#platform-filter-container h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #343a40;
+    margin-top: 0;
+    margin-bottom: 12px;
+    text-align: left;
+}
+
+#platform-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.platform-filter-button {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    color: #495057;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    text-align: center;
+    outline: none;
+}
+
+.platform-filter-button:hover {
+    background-color: #dee2e6;
+    border-color: #adb5bd;
+}
+
+.platform-filter-button.selected {
+    background-color: #007bff;
+    color: #ffffff;
+    border-color: #007bff;
+    font-weight: 500;
+}
+
+#contest-list {
+    margin-top: 10px;
+}
+
+.contest {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6; /* Softer border */
+    border-radius: 8px; /* Slightly larger radius */
+    padding: 15px; /* Increased padding */
+    margin-bottom: 12px; /* Increased margin */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* Softer shadow */
+    transition: box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.contest:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1); /* Enhanced hover shadow */
+    transform: translateY(-2px); /* Slight lift on hover */
+}
+
+.contest-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #007bff; /* Standard blue for links/titles */
+    margin-bottom: 6px; /* Increased spacing */
+}
+
+.contest-host {
+    font-size: 12px;
+    color: #6c757d; /* Softer grey */
+    margin-bottom: 8px; /* Increased spacing */
+}
+
+.contest-time,
+.contest-duration {
+    font-size: 13px;
+    color: #495057; /* Softer text color */
+    margin-bottom: 5px; /* Adjusted spacing */
+}
+
+.contest-countdown {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px; /* Pill shape */
+    font-size: 12px; 
+    font-weight: 600; 
+    color: #ffffff; /* White text */
+    background-color: #28a745; /* Green for normal */
+    margin-bottom: 8px; 
+    text-align: center;
+    min-width: 120px; /* Ensure some minimum width */
+}
+
+.contest-countdown.countdown-urgent {
+    background-color: #dc3545; /* Red for urgent */
+    animation: pulse-urgent 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-urgent {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.6);
+    }
+    70% {
+        box-shadow: 0 0 0 7px rgba(220, 53, 69, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+
+.contest-link {
+    margin-bottom: 10px; /* Spacing before actions */
+}
+
+.contest-link a {
+    font-size: 13px;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.contest-link a:hover {
+    text-decoration: underline;
+    color: #0056b3; /* Darker blue on hover */
+}
+
+.contest-actions {
+    margin-top: 12px; /* Increased spacing */
+    display: flex;
+    gap: 10px; /* Increased gap */
+}
+
+.contest-actions button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px; /* Increased padding */
+    border-radius: 5px; /* Slightly more rounded */
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500; /* Slightly bolder text */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.contest-actions button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+    transform: translateY(-1px); /* Slight lift on hover */
+}
+
+.contest-actions button.reminder-btn {
+    background-color: #ffc107; /* Yellow for reminder */
+    color: #212529; /* Dark text for yellow background */
+}
+
+.contest-actions button.reminder-btn:hover {
+    background-color: #e0a800; /* Darker yellow */
+    color: #212529;
+}
+
+
+.error {
+    color: #c0392b;
+    background-color: #fdd;
+    border: 1px solid #c0392b;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #6c757d;
+}
+
+.loader {
+    border: 4px solid #f3f3f3; /* Light grey */
+    border-top: 4px solid #007bff; /* Blue */
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Scrollbar styling for a more modern look (optional) */
+body::-webkit-scrollbar {
+    width: 8px;
+}
+
+body::-webkit-scrollbar-track {
+    background: #f4f7f9;
+}
+
+body::-webkit-scrollbar-thumb {
+    background-color: #bdc3c7;
+    border-radius: 10px;
+    border: 2px solid #f4f7f9;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background-color: #95a5a6;
+}

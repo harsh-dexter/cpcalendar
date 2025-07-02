@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "CP Calendar",
+  "version": "0.1.0",
+  "description": "Displays upcoming competitive programming contests and allows adding them to Google Calendar.",
+  "permissions": [
+    "storage",
+    "alarms",
+    "identity",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://clist.by/*",
+    "https://www.googleapis.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "oauth2": {
+    "client_id": "684513769407-na1tkkvglqdltcidlt1e86sht5rp37e6.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.events"
+    ]
+  }
+}
