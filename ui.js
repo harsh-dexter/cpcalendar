@@ -7,7 +7,7 @@ let countdownIntervals = [];
 
 function updateCountdown(contestElement, startTime) {
     const now = new Date().getTime();
-    const start = new Date(startTime).getTime();
+    const start = new Date(startTime + 'Z').getTime(); // Treat as UTC
     const diff = start - now;
 
     const countdownElement = contestElement.querySelector('.contest-countdown');
@@ -77,7 +77,7 @@ export function renderContests(contests, contestListElement) {
         contestListElement.appendChild(contestElement);
 
         // Initial call to set countdown and then update it every second
-        if (new Date(contest.start).getTime() > new Date().getTime()) {
+        if (new Date(contest.start + 'Z').getTime() > new Date().getTime()) {
             updateCountdown(contestElement, contest.start);
             const intervalId = setInterval(() => updateCountdown(contestElement, contest.start), 1000);
             countdownIntervals.push(intervalId);
