@@ -1,4 +1,7 @@
-import { CLIST_USERNAME, CLIST_API_KEY, CONTEST_LIMIT, FIXED_PLATFORMS } from './config.js';
+import { CLIST_USERNAME, CLIST_API_KEY, CONTEST_LIMIT } from './config.js';
+
+const cache = new Map();
+const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
 export async function fetchContests(getSelectedPlatformIds, getDateRangeForFilter, activeDayFilter) {
     if (!CLIST_USERNAME || CLIST_USERNAME === 'YOUR_CLIST_USERNAME_HERE' || !CLIST_API_KEY || CLIST_API_KEY === 'YOUR_CLIST_API_KEY_HERE') {
@@ -22,6 +25,16 @@ export async function fetchContests(getSelectedPlatformIds, getDateRangeForFilte
         apiUrl += `&start__lt=${encodeURIComponent(startDateLT)}`;
     }
 
+    const now = Date.now();
+    if (cache.has(apiUrl)) {
+        const { timestamp, data } = cache.get(apiUrl);
+        if (now - timestamp < CACHE_DURATION_MS) {
+            console.log('Returning cached data for:', apiUrl);
+            return data;
+        }
+    }
+
+    console.log('Fetching fresh data for:', apiUrl);
     const response = await fetch(apiUrl);
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({ detail: response.statusText }));
@@ -36,5 +49,7 @@ export async function fetchContests(getSelectedPlatformIds, getDateRangeForFilte
         throw new Error(errorMsg);
     }
     const data = await response.json();
-    return data.objects || [];
+    const contests = data.objects || [];
+    cache.set(apiUrl, { timestamp: now, data: contests });
+    return contests;
 }

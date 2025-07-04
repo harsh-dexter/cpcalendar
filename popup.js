@@ -77,7 +77,9 @@ async function fetchContests() {
     contestListElement.innerHTML = '';
 
     try {
-        allFetchedContests = await fetchContestsFromApi(getSelectedPlatformIds, getDateRangeForFilter, activeDayFilter);
+        // Pass a function that returns all platform IDs for the initial fetch
+        const allPlatformIds = () => Object.values(FIXED_PLATFORMS);
+        allFetchedContests = await fetchContestsFromApi(allPlatformIds, getDateRangeForFilter, activeDayFilter);
         applyFiltersAndRender();
     } catch (error) {
         allFetchedContests = [];
