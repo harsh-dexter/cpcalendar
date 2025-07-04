@@ -3,6 +3,9 @@
 
 CP Calendar is a Chrome extension that displays upcoming competitive programming contests from various platforms and allows you to add them to your Google Calendar.
 
+![image](https://github.com/user-attachments/assets/110e23f3-d242-4f41-a4a6-fe7e3f280254)
+
+
 ## Features
 
 -   View upcoming contests from Codeforces, AtCoder, LeetCode, CodeChef, and GeeksforGeeks.
