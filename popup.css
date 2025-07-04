@@ -374,6 +374,24 @@ h1 {
     opacity: 0.8;
 }
 
+footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid #dee2e6;
+}
+
+.github-icon {
+    width: 24px;
+    height: 24px;
+    color: #333;
+    transition: color 0.2s ease-in-out;
+}
+
+.github-icon:hover {
+    color: #007bff;
+}
+
 /* Scrollbar styling */
 body::-webkit-scrollbar {
     width: 8px;
