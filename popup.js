@@ -50,8 +50,8 @@ function getDateRangeForFilter(filterType) {
             break;
         case 'All Upcoming':
         default:
-            startDateGTE = now; // From current time onwards
-            startDateLT = null; // No upper bound for end date
+            startDateGTE = now;
+            startDateLT = null;
             break;
     }
     return {
@@ -64,13 +64,11 @@ function applyFiltersAndRender() {
     const normalizedSearchTerm = normalizeSearchString(searchBar.value);
     let contestsToRender = allFetchedContests;
 
-    // Filter by platform
     if (activePlatformFilters.length > 0) {
         const selectedPlatformIds = getSelectedPlatformIds();
         contestsToRender = contestsToRender.filter(contest => selectedPlatformIds.includes(contest.resource_id));
     }
 
-    // Filter by search term
     if (normalizedSearchTerm) {
         contestsToRender = contestsToRender.filter(contest => {
             const normalizedEventName = normalizeSearchString(contest.event);
@@ -80,19 +78,18 @@ function applyFiltersAndRender() {
     renderContests(contestsToRender, contestListElement);
 }
 
-async function fetchContests() {
+async function loadContests(getDateRange, renderFunction, ...renderArgs) {
     loaderContainer.style.display = 'flex';
     errorMessageElement.style.display = 'none';
-    contestListElement.innerHTML = '';
-
+    
     try {
         const allPlatformIds = () => Object.values(FIXED_PLATFORMS);
-        allFetchedContests = await fetchContestsFromApi(allPlatformIds, getDateRangeForFilter, activeDayFilter);
-        applyFiltersAndRender();
+        const contests = await fetchContestsFromApi(allPlatformIds, getDateRange, activeDayFilter);
+        allFetchedContests = contests; // Store for filtering
+        renderFunction(contests, ...renderArgs);
     } catch (error) {
         allFetchedContests = [];
-        applyFiltersAndRender();
-        console.error('Failed to fetch contests:', error);
+        console.error('Failed to load contests:', error);
         errorMessageElement.textContent = error.message || 'Failed to load contests. Check console for details.';
         errorMessageElement.style.display = 'block';
     } finally {
@@ -100,32 +97,15 @@ async function fetchContests() {
     }
 }
 
-async function fetchCalendarContests() {
-    loaderContainer.style.display = 'flex';
-    errorMessageElement.style.display = 'none';
-    calendarGrid.innerHTML = '';
-
-    try {
-        const year = currentCalendarDate.getFullYear();
-        const month = currentCalendarDate.getMonth();
-        const firstDayOfMonth = new Date(year, month, 1);
-        const lastDayOfMonth = new Date(year, month + 1, 0);
-
-        const dateRange = {
-            startDateGTE: firstDayOfMonth.toISOString(),
-            startDateLT: lastDayOfMonth.toISOString()
-        };
-
-        const allPlatformIds = () => Object.values(FIXED_PLATFORMS);
-        const contests = await fetchContestsFromApi(allPlatformIds, () => dateRange, 'All Upcoming');
-        renderCalendar(calendarGrid, monthYear, contests, currentCalendarDate);
-    } catch (error) {
-        console.error('Failed to fetch calendar contests:', error);
-        errorMessageElement.textContent = error.message || 'Failed to load calendar. Check console for details.';
-        errorMessageElement.style.display = 'block';
-    } finally {
-        loaderContainer.style.display = 'none';
-    }
+function getCalendarDateRange() {
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    return {
+        startDateGTE: firstDayOfMonth.toISOString(),
+        startDateLT: lastDayOfMonth.toISOString()
+    };
 }
 
 function switchView(view) {
@@ -134,13 +114,13 @@ function switchView(view) {
         calendarView.classList.remove('active');
         listViewBtn.classList.add('active');
         calendarViewBtn.classList.remove('active');
-        fetchContests();
+        loadContests(() => getDateRangeForFilter(activeDayFilter), applyFiltersAndRender);
     } else {
         listView.classList.remove('active');
         calendarView.classList.add('active');
         listViewBtn.classList.remove('active');
         calendarViewBtn.classList.add('active');
-        fetchCalendarContests();
+        loadContests(getCalendarDateRange, renderCalendar, calendarGrid, monthYear, currentCalendarDate);
     }
 }
 
@@ -150,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         activeDayFilter = filter;
     };
 
-    renderDayFilters(dayFilterElement, DAY_FILTER_OPTIONS, getActiveDayFilter, setActiveDayFilter, fetchContests);
+    renderDayFilters(dayFilterElement, DAY_FILTER_OPTIONS, getActiveDayFilter, setActiveDayFilter, () => loadContests(() => getDateRangeForFilter(activeDayFilter), applyFiltersAndRender));
     renderPlatformFilters(platformFilterElement, activePlatformFilters, applyFiltersAndRender);
     
     searchBar.addEventListener('input', debounce(applyFiltersAndRender, 300));
@@ -160,15 +140,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     prevMonthBtn.addEventListener('click', () => {
         currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-        fetchCalendarContests();
+        loadContests(getCalendarDateRange, renderCalendar, calendarGrid, monthYear, currentCalendarDate);
     });
 
     nextMonthBtn.addEventListener('click', () => {
         currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-        fetchCalendarContests();
+        loadContests(getCalendarDateRange, renderCalendar, calendarGrid, monthYear, currentCalendarDate);
     });
 
-    fetchContests(); 
+    // Initial load
+    switchView('list');
 });
 
 document.addEventListener('visibilitychange', () => {

@@ -3,42 +3,50 @@ import { formatDateTime, formatDuration } from './utils.js';
 import { handleAddToGoogleCalendar } from './googleCalendar.js';
 import { handleSetReminder } from './reminders.js';
 
-let countdownIntervals = [];
+let globalCountdownInterval = null;
 
-function updateCountdown(contestElement, contest) {
-    const now = new Date().getTime();
-    const start = new Date(contest.start + 'Z').getTime(); // Treat as UTC
-    const diff = start - now;
+function updateAllCountdowns() {
+    const countdownElements = document.querySelectorAll('.contest-countdown');
+    countdownElements.forEach(countdownElement => {
+        const startTime = parseInt(countdownElement.dataset.startTime, 10);
+        if (isNaN(startTime)) return;
 
-    const countdownElement = contestElement.querySelector('.contest-countdown');
-    countdownElement.classList.remove('countdown-urgent'); // Reset class
+        const now = new Date().getTime();
+        const diff = startTime - now;
 
-    if (diff <= 0) {
-        countdownElement.textContent = 'Started / Ended';
-        countdownElement.classList.remove('countdown-urgent'); // Ensure it's removed if contest just ended
-        return;
+        countdownElement.classList.remove('countdown-urgent');
+
+        if (diff <= 0) {
+            countdownElement.textContent = 'Started / Ended';
+            return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        let countdownText = '';
+        if (days > 0) {
+            countdownText += `${days}d `;
+        } else {
+            countdownElement.classList.add('countdown-urgent');
+        }
+        countdownText += `${hours}h ${minutes}m ${seconds}s`;
+        countdownElement.textContent = `Starts in: ${countdownText}`;
+    });
+}
+
+function startGlobalCountdown() {
+    if (globalCountdownInterval) {
+        clearInterval(globalCountdownInterval);
     }
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    let countdownText = '';
-    if (days > 0) {
-        countdownText += `${days}d `;
-    } else {
-        // Under 24 hours
-        countdownElement.classList.add('countdown-urgent');
-    }
-    countdownText += `${hours}h ${minutes}m ${seconds}s`;
-    countdownElement.textContent = `Starts in: ${countdownText}`;
+    updateAllCountdowns(); // Initial call
+    globalCountdownInterval = setInterval(updateAllCountdowns, 1000);
 }
 
 export function renderContests(contests, contestListElement) {
-    countdownIntervals.forEach(clearInterval);
-    countdownIntervals = [];
-    contestListElement.innerHTML = ''; // Clear previous list or "Loading..."
+    contestListElement.innerHTML = '';
 
     if (!contests || contests.length === 0) {
         contestListElement.innerHTML = '<p>No upcoming contests found for the selected platforms.</p>';
@@ -49,7 +57,6 @@ export function renderContests(contests, contestListElement) {
         const contestElement = document.createElement('div');
         contestElement.className = 'contest';
 
-        // Determine platform color
         let platformColor = PLATFORM_COLORS.default;
         for (const name in FIXED_PLATFORMS) {
             if (FIXED_PLATFORMS[name] === contest.resource_id) {
@@ -61,13 +68,14 @@ export function renderContests(contests, contestListElement) {
 
         const startDateTime = formatDateTime(contest.start);
         const contestDuration = formatDuration(contest.duration);
+        const startTimeMs = new Date(contest.start + 'Z').getTime();
 
         contestElement.innerHTML = `
             <div class="contest-title">${contest.event}</div>
             <div class="contest-host">Platform: ${contest.host}</div>
             <div class="contest-time">Start: ${startDateTime}</div>
             <div class="contest-duration">Duration: ${contestDuration}</div>
-            <div class="contest-countdown">Calculating...</div>
+            <div class="contest-countdown" data-start-time="${startTimeMs}">Calculating...</div>
             <div class="contest-link"><a href="${contest.href}" target="_blank">Go to Contest</a></div>
             <div class="contest-actions">
                 <button class="gcal-btn" data-contest-id="${contest.id}">Add to Google Calendar</button>
@@ -76,19 +84,11 @@ export function renderContests(contests, contestListElement) {
         `;
         contestListElement.appendChild(contestElement);
 
-        // Initial call to set countdown and then update it every second
-        if (new Date(contest.start + 'Z').getTime() > new Date().getTime()) {
-            updateCountdown(contestElement, contest);
-            const intervalId = setInterval(() => updateCountdown(contestElement, contest), 1000);
-            countdownIntervals.push(intervalId);
-        } else {
-            updateCountdown(contestElement, contest); // Show "Started / Ended"
-        }
-
-        // Add event listeners for buttons
         contestElement.querySelector('.gcal-btn').addEventListener('click', () => handleAddToGoogleCalendar(contest));
         contestElement.querySelector('.reminder-btn').addEventListener('click', () => handleSetReminder(contest));
     });
+
+    startGlobalCountdown();
 }
 
 export function renderDayFilters(dayFilterElement, DAY_FILTER_OPTIONS, getActiveDayFilter, setActiveDayFilter, fetchContests) {
@@ -105,7 +105,6 @@ export function renderDayFilters(dayFilterElement, DAY_FILTER_OPTIONS, getActive
 
         button.addEventListener('click', () => {
             setActiveDayFilter(filterType);
-            // Update selected state for all buttons
             dayFilterElement.querySelectorAll('.day-filter-button').forEach(btn => {
                 btn.classList.toggle('selected', btn.dataset.filterType === getActiveDayFilter());
             });
