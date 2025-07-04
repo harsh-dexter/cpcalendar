@@ -5,9 +5,9 @@ import { handleSetReminder } from './reminders.js';
 
 let countdownIntervals = [];
 
-function updateCountdown(contestElement, startTime) {
+function updateCountdown(contestElement, contest) {
     const now = new Date().getTime();
-    const start = new Date(startTime + 'Z').getTime(); // Treat as UTC
+    const start = new Date(contest.start + 'Z').getTime(); // Treat as UTC
     const diff = start - now;
 
     const countdownElement = contestElement.querySelector('.contest-countdown');
@@ -78,11 +78,11 @@ export function renderContests(contests, contestListElement) {
 
         // Initial call to set countdown and then update it every second
         if (new Date(contest.start + 'Z').getTime() > new Date().getTime()) {
-            updateCountdown(contestElement, contest.start);
-            const intervalId = setInterval(() => updateCountdown(contestElement, contest.start), 1000);
+            updateCountdown(contestElement, contest);
+            const intervalId = setInterval(() => updateCountdown(contestElement, contest), 1000);
             countdownIntervals.push(intervalId);
         } else {
-            updateCountdown(contestElement, contest.start); // Show "Started / Ended"
+            updateCountdown(contestElement, contest); // Show "Started / Ended"
         }
 
         // Add event listeners for buttons
@@ -131,9 +131,13 @@ export function renderPlatformFilters(platformFilterElement, activePlatformFilte
         button.addEventListener('click', () => {
             button.classList.toggle('selected');
             const platformName = button.dataset.platformName;
-            if (activePlatformFilters.includes(platformName)) {
-                activePlatformFilters = activePlatformFilters.filter(p => p !== platformName);
+            const index = activePlatformFilters.indexOf(platformName);
+
+            if (index > -1) {
+                // Platform exists, so remove it
+                activePlatformFilters.splice(index, 1);
             } else {
+                // Platform doesn't exist, so add it
                 activePlatformFilters.push(platformName);
             }
             applyFiltersAndRender();

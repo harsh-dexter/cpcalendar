@@ -4,53 +4,42 @@
 chrome.alarms.onAlarm.addListener((alarm) => {
     console.log("Alarm fired:", alarm);
     if (alarm.name.startsWith("contest-reminder-")) {
-        // Extract contest details from the alarm name or fetch from storage if needed
-        // For simplicity, we'll assume the contest event name is part of the alarm name
-        // A more robust solution might store contest details in chrome.storage.local when the alarm is set.
-        const contestDataString = alarm.name.substring("contest-reminder-".length);
-        try {
-            const contestData = JSON.parse(decodeURIComponent(contestDataString));
-            const notificationId = `contest-notification-${contestData.id}-${Date.now()}`;
+        const alarmName = alarm.name;
+        chrome.storage.local.get(alarmName, (data) => {
+            const contestData = data[alarmName];
+            if (contestData) {
+                const notificationId = `contest-notification-${contestData.id}-${Date.now()}`;
+                chrome.storage.local.set({ [notificationId]: contestData });
 
-            chrome.notifications.create(notificationId, {
-                type: 'basic',
-                iconUrl: 'images/icon128.png', // Ensure you have this icon
-                title: `Contest Reminder: ${contestData.event}`,
-                message: `${contestData.event} on ${contestData.host} is starting soon!`,
-                priority: 2, // High priority
-                buttons: [ // Optional: Add a button to go to the contest
-                    { title: 'Go to Contest', iconUrl: 'images/icon16.png' } // Ensure you have this icon
-                ]
-            });
+                chrome.notifications.create(notificationId, {
+                    type: 'basic',
+                    iconUrl: 'images/icon128.png',
+                    title: `Contest Reminder: ${contestData.event}`,
+                    message: `${contestData.event} on ${contestData.host} is starting soon!`,
+                    priority: 2,
+                    buttons: [
+                        { title: 'Go to Contest', iconUrl: 'images/icon16.png' }
+                    ]
+                });
 
-            console.log(`Notification created for ${contestData.event}`);
-
-        } catch (e) {
-            console.error("Error parsing contest data from alarm name:", e);
-            // Fallback notification if parsing fails
-            chrome.notifications.create({
-                type: 'basic',
-                iconUrl: 'images/icon128.png',
-                title: 'Contest Reminder',
-                message: 'A contest is starting soon!',
-                priority: 2
-            });
-        }
+                console.log(`Notification created for ${contestData.event}`);
+                chrome.storage.local.remove(alarmName);
+            }
+        });
     }
 });
 
 // Optional: Listener for notification button clicks
 chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
     console.log(`Notification button clicked. ID: ${notificationId}, Button Index: ${buttonIndex}`);
-    // Example: If we have a contest URL stored or can derive it
-    // This part needs to be more robust if we want to open specific contest links
-    // For now, it's a placeholder.
     if (notificationId.startsWith("contest-notification-") && buttonIndex === 0) {
-        // Attempt to extract contest ID and find its URL if stored, or open a generic site
-        // This requires a more complex setup to pass the contest URL or ID effectively.
-        // For now, let's log it. A real implementation would need to retrieve the contest.href.
-        console.log("User clicked 'Go to Contest'. Implement navigation logic.");
-        // Example: chrome.tabs.create({ url: contest.href }); (href would need to be available here)
+        chrome.storage.local.get(notificationId, (data) => {
+            const contestData = data[notificationId];
+            if (contestData && contestData.href) {
+                chrome.tabs.create({ url: contestData.href });
+                chrome.storage.local.remove(notificationId);
+            }
+        });
     }
     chrome.notifications.clear(notificationId);
 });
@@ -64,27 +53,37 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (!contest || !contest.id || !contest.start || !contest.event) {
             console.error("Invalid contest data for reminder:", contest);
             sendResponse({ success: false, message: "Invalid contest data for reminder." });
-            return;
+            return true;
         }
 
-        // DEMO: Set reminder for 15 seconds from now for quick testing
-        const reminderTime = Date.now() + (15 * 1000);
+        const reminderTime = new Date(contest.start + 'Z').getTime() - (15 * 60 * 1000); // 15 minutes before
+        const now = Date.now();
 
-        const contestDataForAlarm = {
-            id: contest.id,
-            event: contest.event,
-            host: contest.host,
-            href: contest.href
-        };
-        const alarmName = `contest-reminder-${encodeURIComponent(JSON.stringify(contestDataForAlarm))}`;
+        if (reminderTime <= now) {
+            console.log(`Contest "${contest.event}" start time is in the past or too soon for a 15-min reminder.`);
+            sendResponse({ success: false, message: `"${contest.event}" is starting too soon or has passed.` });
+            return true;
+        }
 
-        chrome.alarms.create(alarmName, {
-            when: reminderTime
+        const alarmName = `contest-reminder-${contest.id}`;
+
+        chrome.alarms.get(alarmName, (existingAlarm) => {
+            if (existingAlarm) {
+                console.log(`Reminder already exists for ${contest.event}`);
+                sendResponse({ success: false, message: `Reminder already set for "${contest.event}".` });
+            } else {
+                chrome.storage.local.set({ [alarmName]: contest }, () => {
+                    chrome.alarms.create(alarmName, {
+                        when: reminderTime
+                    });
+                    
+                    console.log(`Reminder set for ${contest.event} at ${new Date(reminderTime).toLocaleString()}`);
+                    sendResponse({ success: true, message: `Reminder set for 15 minutes before "${contest.event}"!` });
+                });
+            }
         });
-        
-        console.log(`Reminder set for ${contest.event} at ${new Date(reminderTime).toLocaleString()}`);
-        sendResponse({ success: true, message: `Reminder set for "${contest.event}"!` });
     }
+    return true; // Indicates asynchronous response
 });
 
 console.log("Background service worker started.");
