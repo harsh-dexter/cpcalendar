@@ -85,10 +85,14 @@ async function loadContests(getDateRange, renderFunction, ...renderArgs) {
     try {
         const allPlatformIds = () => Object.values(FIXED_PLATFORMS);
         const contests = await fetchContestsFromApi(allPlatformIds, getDateRange, activeDayFilter);
-        allFetchedContests = contests; // Store for filtering
-        renderFunction(contests, ...renderArgs);
+        
+        if (renderFunction === renderContests) {
+            allFetchedContests = contests;
+            applyFiltersAndRender();
+        } else {
+            renderFunction(contests, ...renderArgs);
+        }
     } catch (error) {
-        allFetchedContests = [];
         console.error('Failed to load contests:', error);
         errorMessageElement.textContent = error.message || 'Failed to load contests. Check console for details.';
         errorMessageElement.style.display = 'block';
@@ -114,7 +118,7 @@ function switchView(view) {
         calendarView.classList.remove('active');
         listViewBtn.classList.add('active');
         calendarViewBtn.classList.remove('active');
-        loadContests(() => getDateRangeForFilter(activeDayFilter), applyFiltersAndRender);
+        loadContests(() => getDateRangeForFilter(activeDayFilter), renderContests, contestListElement);
     } else {
         listView.classList.remove('active');
         calendarView.classList.add('active');
@@ -130,7 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         activeDayFilter = filter;
     };
 
-    renderDayFilters(dayFilterElement, DAY_FILTER_OPTIONS, getActiveDayFilter, setActiveDayFilter, () => loadContests(() => getDateRangeForFilter(activeDayFilter), applyFiltersAndRender));
+    renderDayFilters(dayFilterElement, DAY_FILTER_OPTIONS, getActiveDayFilter, setActiveDayFilter, () => loadContests(() => getDateRangeForFilter(activeDayFilter), renderContests, contestListElement));
     renderPlatformFilters(platformFilterElement, activePlatformFilters, applyFiltersAndRender);
     
     searchBar.addEventListener('input', debounce(applyFiltersAndRender, 300));

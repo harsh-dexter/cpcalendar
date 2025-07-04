@@ -144,7 +144,7 @@ export function renderPlatformFilters(platformFilterElement, activePlatformFilte
     });
 }
 
-export function renderCalendar(calendarGrid, monthYear, contests, date) {
+export function renderCalendar(contests, calendarGrid, monthYear, date) {
     calendarGrid.innerHTML = '';
     monthYear.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
