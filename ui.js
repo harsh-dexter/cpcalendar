@@ -125,8 +125,9 @@ export function renderPlatformFilters(platformFilterElement, activePlatformFilte
         button.textContent = name;
         button.dataset.platformName = name;
 
-        // Initially, no buttons are selected.
-        // The 'selected' class will be toggled on click.
+        if (activePlatformFilters.includes(name)) {
+            button.classList.add('selected');
+        }
 
         button.addEventListener('click', () => {
             button.classList.toggle('selected');
@@ -134,14 +135,78 @@ export function renderPlatformFilters(platformFilterElement, activePlatformFilte
             const index = activePlatformFilters.indexOf(platformName);
 
             if (index > -1) {
-                // Platform exists, so remove it
                 activePlatformFilters.splice(index, 1);
             } else {
-                // Platform doesn't exist, so add it
                 activePlatformFilters.push(platformName);
             }
             applyFiltersAndRender();
         });
         platformFilterElement.appendChild(button);
     });
+}
+
+export function renderCalendar(calendarGrid, monthYear, contests, date) {
+    calendarGrid.innerHTML = '';
+    monthYear.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    const month = date.getMonth();
+    const year = date.getFullYear();
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    dayNames.forEach(day => {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        dayElement.textContent = day;
+        calendarGrid.appendChild(dayElement);
+    });
+
+    for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'calendar-date other-month';
+        calendarGrid.appendChild(emptyCell);
+    }
+
+    for (let i = 1; i <= daysInMonth; i++) {
+        const dateCell = document.createElement('div');
+        dateCell.className = 'calendar-date';
+        if (i === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) {
+            dateCell.classList.add('today');
+        }
+
+        const dateNum = document.createElement('div');
+        dateNum.className = 'date-num';
+        dateNum.textContent = i;
+        dateCell.appendChild(dateNum);
+
+        const contestsForDay = contests.filter(contest => {
+            const contestDate = new Date(contest.start + 'Z');
+            return contestDate.getDate() === i && contestDate.getMonth() === month && contestDate.getFullYear() === year;
+        });
+
+        contestsForDay.forEach(contest => {
+            const contestElement = document.createElement('div');
+            contestElement.className = 'calendar-contest';
+            contestElement.textContent = contest.event;
+            contestElement.title = contest.event;
+
+            let platformColor = PLATFORM_COLORS.default;
+            for (const name in FIXED_PLATFORMS) {
+                if (FIXED_PLATFORMS[name] === contest.resource_id) {
+                    platformColor = PLATFORM_COLORS[name] || PLATFORM_COLORS.default;
+                    break;
+                }
+            }
+            contestElement.style.backgroundColor = platformColor;
+
+            contestElement.addEventListener('click', () => {
+                window.open(contest.href, '_blank');
+            });
+            dateCell.appendChild(contestElement);
+        });
+
+        calendarGrid.appendChild(dateCell);
+    }
 }

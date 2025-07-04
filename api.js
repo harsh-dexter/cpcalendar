@@ -1,7 +1,6 @@
 import { CLIST_USERNAME, CLIST_API_KEY, CONTEST_LIMIT } from './config.js';
 
-const cache = new Map();
-const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION_MS = 30 * 60 * 1000; // 30 minutes
 
 export async function fetchContests(getSelectedPlatformIds, getDateRangeForFilter, activeDayFilter) {
     if (!CLIST_USERNAME || CLIST_USERNAME === 'YOUR_CLIST_USERNAME_HERE' || !CLIST_API_KEY || CLIST_API_KEY === 'YOUR_CLIST_API_KEY_HERE') {
@@ -26,12 +25,19 @@ export async function fetchContests(getSelectedPlatformIds, getDateRangeForFilte
     }
 
     const now = Date.now();
-    if (cache.has(apiUrl)) {
-        const { timestamp, data } = cache.get(apiUrl);
-        if (now - timestamp < CACHE_DURATION_MS) {
-            console.log('Returning cached data for:', apiUrl);
-            return data;
+    const cacheKey = `contests_${apiUrl}`;
+
+    try {
+        const cachedResult = await new Promise(resolve => chrome.storage.local.get(cacheKey, resolve));
+        if (cachedResult[cacheKey]) {
+            const { timestamp, data } = cachedResult[cacheKey];
+            if (now - timestamp < CACHE_DURATION_MS) {
+                console.log('Returning cached data for:', apiUrl);
+                return data;
+            }
         }
+    } catch (error) {
+        console.error('Error reading from local storage cache:', error);
     }
 
     console.log('Fetching fresh data for:', apiUrl);
@@ -50,6 +56,12 @@ export async function fetchContests(getSelectedPlatformIds, getDateRangeForFilte
     }
     const data = await response.json();
     const contests = data.objects || [];
-    cache.set(apiUrl, { timestamp: now, data: contests });
+    
+    try {
+        await new Promise(resolve => chrome.storage.local.set({ [cacheKey]: { timestamp: now, data: contests } }, resolve));
+    } catch (error) {
+        console.error('Error writing to local storage cache:', error);
+    }
+
     return contests;
 }
