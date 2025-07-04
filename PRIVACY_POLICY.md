@@ -45,15 +45,3 @@ The Extension relies on the following third-party services:
 
 We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy within the Extension or on its Chrome Web Store listing. You are advised to review this Privacy Policy periodically for any changes.
 
-## Contact Us
-
-If you have any questions about this Privacy Policy, please contact us at:
-[Your Email Address or a Link to a Contact Page - User to fill this]
-
----
-
-**Note to Developer (User):**
-*   Replace bracketed placeholders like `[Your Name/Developer Name - User to fill this]` and `[Your Email Address or a Link to a Contact Page - User to fill this]` with your actual information.
-*   Update the "Last Updated" date.
-*   You need to host this privacy policy on a publicly accessible URL (e.g., a simple webpage on GitHub Pages, a personal website, or a service like `privacypolicies.com` that can host it). You will provide this URL when submitting your extension to the Chrome Web Store.
-*   Review this template carefully to ensure it accurately reflects all data handling practices of your extension as it evolves.
